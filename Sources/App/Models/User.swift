@@ -2,10 +2,9 @@ import Vapor
 import Foundation
 import FluentPostgreSQL
 
-final class User: Content {
-    var id: UUID?
+final class User {
 
-    var displayName: String
+    var displayName: String?
     var password: String
 
     init(displayName: String, password: String) {
@@ -14,5 +13,12 @@ final class User: Content {
     }
 }
 
-extension User: PostgreSQLUUIDModel {}
+extension User: Model {
+
+    typealias Database = PostgreSQLDatabase
+
+    static var idKey: WritableKeyPath<User, String?> { \.displayName }
+}
+
+//extension User: PostgreSQLUUIDModel {}
 extension User: Migration {}

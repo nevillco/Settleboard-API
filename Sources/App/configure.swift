@@ -17,10 +17,15 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     services.register(middlewares)
 
+    // Register Postgres DB
     var databases = DatabasesConfig()
     let config = PostgreSQLDatabaseConfig(hostname: "localhost", username: "connorneville", database: "settleboard")
     databases.add(database: PostgreSQLDatabase(config: config), as: .psql)
     services.register(databases)
+
+    var commands = CommandConfig.default()
+    commands.useFluentCommands()
+    services.register(commands)
 
     // Configure migrations
     var migrations = MigrationConfig()
