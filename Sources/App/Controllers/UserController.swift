@@ -7,11 +7,11 @@ final class UserController { }
 // MARK: - Internal API
 extension UserController {
 
-    func index(_ request: Request) throws -> Future<[User]> {
+    func getAll(_ request: Request) throws -> Future<[User]> {
         return User.query(on: request).all()
     }
 
-    func show(_ request: Request) throws -> Future<User> {
+    func getNext(_ request: Request) throws -> Future<User> {
         return try request.parameters.next(User.self)
     }
     
@@ -31,8 +31,8 @@ extension UserController: RouteCollection {
     func boot(router: Router) throws {
         let users = router.grouped(Self.group)
         users.post(User.self, use: create)
-        users.get(use: index)
-        users.get(User.parameter, use: show)
+        users.get(use: getAll)
+        users.get(User.parameter, use: getNext)
         users.delete(User.parameter, use: delete)
     }
     
