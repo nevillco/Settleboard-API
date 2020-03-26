@@ -6,13 +6,26 @@ import FluentPostgreSQL
 final class Score {
 
     var id: UUID?
-    var userDisplayName: String
+    let value: Int
+    let isVictory: Bool
+    let userID: User.ID
 
-    init(userDisplayName: String) {
-        self.userDisplayName = userDisplayName
+    init(
+        value: Int,
+        isVictory: Bool,
+        userID: UUID) {
+        self.value = value
+        self.isVictory = isVictory
+        self.userID = userID
     }
 
 }
 
+// MARK: - Migration
+extension Score: Migration { }
+
 // MARK: - PostgreSQLUUIDModel
 extension Score: PostgreSQLUUIDModel { }
+
+// MARK: - Content
+extension Score: Content { }

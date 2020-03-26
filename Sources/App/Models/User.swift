@@ -15,6 +15,13 @@ final class User {
     }
 }
 
+// MARK: - Relations
+extension User {
+
+    var scores: Children<User, Score> { children(\.userID) }
+
+}
+
 // MARK: - PostgreSQLUUIDModel
 extension User: PostgreSQLUUIDModel { }
 
