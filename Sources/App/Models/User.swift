@@ -33,4 +33,10 @@ extension User: Model {
 }
 
 // MARK: - Migration
-extension User: Migration {}
+extension User: Migration { }
+
+// MARK: - Parameter
+extension User: Parameter { }
+
+// MARK: - Content
+extension User: Content { }
