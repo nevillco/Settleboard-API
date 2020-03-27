@@ -26,7 +26,7 @@ extension MatchController {
     func getRecent(_ request: Request) throws -> Future<[RecentMatchOutput]> {
         let limit = try request.parameters.next(Int.self)
         return Match.query(on: request)
-//            .sort(\.fluentCreatedAt)
+            .sort(\.createdAt)
             .range(..<limit)
             .all()
             .flatMap { matches -> Future<[RecentMatchOutput]> in

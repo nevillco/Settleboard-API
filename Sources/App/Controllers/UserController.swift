@@ -18,7 +18,8 @@ extension UserController {
     }
 
     /// Creates a new User.
-    func create(_ request: Request, _ user: User) throws -> Future<User> {
+    func create(_ request: Request, _ input: CreateUserInput) throws -> Future<User> {
+        let user = User(displayName: input.displayName, password: input.displayName)
         return user.create(on: request)
     }
 
@@ -34,7 +35,7 @@ extension UserController: RouteCollection {
 
     func boot(router: Router) throws {
         let users = router.grouped("users")
-        users.post(User.self, use: create)
+        users.post(CreateUserInput.self, use: create)
         users.get(use: getAll)
         users.get(User.parameter, use: getByID)
         users.delete(User.parameter, use: delete)

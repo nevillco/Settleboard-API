@@ -6,6 +6,7 @@ import FluentPostgreSQL
 final class Match {
 
     var id: UUID?
+    var createdAt: Date?
 
     init() { }
 
@@ -22,7 +23,11 @@ extension Match {
 extension Match: Migration { }
 
 // MARK: - PostgreSQLUUIDModel
-extension Match: PostgreSQLUUIDModel { }
+extension Match: PostgreSQLUUIDModel {
+
+    static var createdAtKey: WritableKeyPath<Match, Date?>? { \.createdAt }
+
+}
 
 // MARK: - Content
 extension Match: Content { }

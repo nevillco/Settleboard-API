@@ -9,9 +9,18 @@ final class User {
     var displayName: String
     var password: String
 
+    var wins: Int
+    var points: Int
+    var gamesPlayed: Int
+
+    var winPercentage: Double { Double(wins) / Double(gamesPlayed) }
+    var pointsPerGame: Double { Double(points) / Double(gamesPlayed) }
+
     init(displayName: String, password: String) {
         self.displayName = displayName
         self.password = password
+
+        (wins, points, gamesPlayed) = (0, 0, 0)
     }
 }
 
