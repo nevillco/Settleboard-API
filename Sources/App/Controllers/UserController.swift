@@ -1,7 +1,7 @@
 import Vapor
 import Fluent
 
-// MARK: - UserCollection
+// MARK: - UserController
 final class UserController { }
 
 // MARK: - Actions

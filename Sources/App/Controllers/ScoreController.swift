@@ -1,13 +1,13 @@
 import Vapor
 import Fluent
 
-// MARK: - UserCollection
+// MARK: - ScoreController
 final class ScoreController { }
 
 // MARK: - Actions
 extension ScoreController {
 
-    /// Gets all Users.
+    /// Gets all Scores for a given User.
     func getAll(_ request: Request) throws -> Future<[Score]> {
         return try request.parameters.next(User.self).flatMap { user in
             try user.scores.query(on: request).all()
