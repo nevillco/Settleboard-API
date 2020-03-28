@@ -7,7 +7,7 @@ final class MatchController { }
 // MARK: - Actions
 extension MatchController {
 
-    /// Creates a new User.
+    /// Creates a new Match.
     func create(_ request: Request, _ input: CreateMatchInput) throws -> Future<Match> {
         return Match().save(on: request)
             .flatMap { match -> Future<Match> in
@@ -23,6 +23,7 @@ extension MatchController {
             }
     }
 
+    /// Gets the N most recent matches, where N is part of the parameterized request path.
     func getRecent(_ request: Request) throws -> Future<[RecentMatchOutput]> {
         let limit = try request.parameters.next(Int.self)
         return Match.query(on: request)

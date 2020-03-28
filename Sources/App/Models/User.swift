@@ -9,19 +9,21 @@ final class User {
     var displayName: String
     var password: String
 
-    var wins: Int
-    var points: Int
-    var gamesPlayed: Int
+    var wins: Int { didSet { recalculateStatistics() } }
+    var points: Int { didSet { recalculateStatistics() } }
+    var gamesPlayed: Int { didSet { recalculateStatistics() } }
 
-    var winPercentage: Double { Double(wins) / Double(gamesPlayed) }
-    var pointsPerGame: Double { Double(points) / Double(gamesPlayed) }
+    var winPercentage: Double
+    var pointsPerGame: Double
 
     init(displayName: String, password: String) {
         self.displayName = displayName
         self.password = password
 
         (wins, points, gamesPlayed) = (0, 0, 0)
+        (winPercentage, pointsPerGame) = (0, 0)
     }
+
 }
 
 // MARK: - Relations
@@ -42,3 +44,13 @@ extension User: Parameter { }
 
 // MARK: - Content
 extension User: Content { }
+
+// MARK: - Private
+private extension User {
+
+    func recalculateStatistics() {
+        winPercentage = Double(wins) / Double(gamesPlayed)
+        pointsPerGame = Double(points) / Double(gamesPlayed)
+    }
+
+}
