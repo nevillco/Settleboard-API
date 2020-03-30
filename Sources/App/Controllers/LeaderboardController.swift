@@ -13,8 +13,8 @@ extension LeaderboardController {
         let size: Int = try request.query.get(at: "size")
         return User.query(on: request)
             .filter(\.gamesPlayed >= 3)
-            .sort(\.winPercentage)
-            .sort(\.pointsPerGame)
+            .sort(\.winPercentage, .descending)
+            .sort(\.pointsPerGame, .descending)
             .range(offset..<(offset + size))
             .all()
     }
@@ -26,7 +26,7 @@ extension LeaderboardController: RouteCollection {
 
     func boot(router: Router) throws {
         let matches = router.grouped("leaderboard")
-        matches.get("recent", use: leaderboard)
+        matches.get(use: leaderboard)
     }
 
 }
