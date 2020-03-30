@@ -17,6 +17,13 @@ extension UserController {
         return try request.parameters.next(User.self)
     }
 
+    /// Gets all Scores for a given User.
+    func scores(_ request: Request) throws -> Future<[Score]> {
+        return try request.parameters.next(User.self).flatMap { user in
+            try user.scores.query(on: request).all()
+        }
+    }
+
     /// Creates a new User.
     func create(_ request: Request, _ input: CreateUserInput) throws -> Future<User> {
         let user = User(displayName: input.displayName, password: input.password)
@@ -39,6 +46,8 @@ extension UserController: RouteCollection {
         users.get(use: getAll)
         users.get(User.parameter, use: getByID)
         users.delete(User.parameter, use: delete)
+        let scores = router.grouped("users", User.parameter, "scores")
+        scores.get(use: self.scores)
     }
     
 }

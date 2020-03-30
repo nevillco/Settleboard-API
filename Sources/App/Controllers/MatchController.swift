@@ -39,7 +39,7 @@ extension MatchController {
         .map { $0.map { $0.1 } }
     }
 
-    /// Gets the N most recent matches, where N is part of the parameterized request path.
+    /// Gets the most recent matches, paginated.
     func getRecent(_ request: Request) throws -> Future<[RecentMatchOutput]> {
         let offset: Int = try request.query.get(at: "offset")
         let size: Int = try request.query.get(at: "size")
