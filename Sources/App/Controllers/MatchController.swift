@@ -7,9 +7,6 @@ final class MatchController { }
 // MARK: - Actions
 extension MatchController {
 
-    // TODO: validate ALL UUIDs and get Users before any mutations
-    // TODO: better error handling, 3-4p validation, win condition validation
-
     /// Creates a new Match.
     func create(_ request: Request, _ input: CreateMatchInput) throws -> Future<[Score]> {
         return validate(input, on: request)
@@ -44,10 +41,11 @@ extension MatchController {
 
     /// Gets the N most recent matches, where N is part of the parameterized request path.
     func getRecent(_ request: Request) throws -> Future<[RecentMatchOutput]> {
-        let limit = try request.parameters.next(Int.self)
+        let offset: Int = try request.query.get(at: "offset")
+        let size: Int = try request.query.get(at: "size")
         return Match.query(on: request)
             .sort(\.createdAt)
-            .range(..<limit)
+            .range(offset..<(offset + size))
             .all()
             .flatMap { matches -> Future<[RecentMatchOutput]> in
                 return try matches.map { match -> Future<RecentMatchOutput> in
@@ -67,7 +65,7 @@ extension MatchController: RouteCollection {
     func boot(router: Router) throws {
         let matches = router.grouped("matches")
         matches.post(CreateMatchInput.self, use: create)
-        matches.get("recent", Int.parameter, use: getRecent)
+        matches.get("recent", use: getRecent)
     }
 
 }
