@@ -1,3 +1,4 @@
+import Authentication
 import Vapor
 import Foundation
 import FluentPostgreSQL
@@ -45,6 +46,14 @@ extension User: Parameter { }
 
 // MARK: - Content
 extension User: Content { }
+
+// MARK: - BasicAuthenticatable
+extension User: BasicAuthenticatable {
+
+    static var usernameKey: WritableKeyPath<User, String> { \.displayName }
+    static var passwordKey: WritableKeyPath<User, String> { \.password }
+
+}
 
 // MARK: - Private
 private extension User {

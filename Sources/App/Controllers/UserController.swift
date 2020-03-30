@@ -1,3 +1,4 @@
+import Crypto
 import Vapor
 import Fluent
 
@@ -25,9 +26,21 @@ extension UserController {
     }
 
     /// Creates a new User.
-    func create(_ request: Request, _ input: CreateUserInput) throws -> Future<User> {
-        let user = User(displayName: input.displayName, password: input.password)
-        return user.create(on: request)
+    func create(_ request: Request, _ input: CreateUserInput) throws -> Future<HTTPStatus> {
+        return User.query(on: request)
+            .filter(\.displayName == input.displayName)
+            .first()
+            .flatMap { user in
+                switch user {
+                case .some:
+                    throw Abort(.badRequest, reason: "Display name is already taken.")
+                case nil:
+                    let digest = try request.make(BCryptDigest.self)
+                    let hashedPassword = try digest.hash(input.password)
+                    let user = User(displayName: input.displayName, password: hashedPassword)
+                    return user.create(on: request).transform(to: .created)
+                }
+        }
     }
 
     /// Deletes a User.
@@ -42,12 +55,16 @@ extension UserController: RouteCollection {
 
     func boot(router: Router) throws {
         let users = router.grouped("users")
-        users.post(CreateUserInput.self, use: create)
         users.get(use: getAll)
         users.get(User.parameter, use: getByID)
         users.delete(User.parameter, use: delete)
         let scores = router.grouped("users", User.parameter, "scores")
         scores.get(use: self.scores)
+    }
+
+    func bootWithoutAuth(router: Router) throws {
+        let users = router.grouped("users")
+        users.post(CreateUserInput.self, use: create)
     }
     
 }
