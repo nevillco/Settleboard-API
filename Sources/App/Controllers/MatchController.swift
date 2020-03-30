@@ -12,36 +12,6 @@ extension MatchController {
 
     /// Creates a new Match.
     func create(_ request: Request, _ input: CreateMatchInput) throws -> Future<[Score]> {
-        return Match().create(on: request)
-            .map { try $0.requireID() }
-            .flatMap { matchID -> Future<[(User, Score)]> in
-                input.scores.map { (arg) -> Future<(User, Score)> in
-                    let (userIDString, value) = arg
-                    return request.eventLoop.newSucceededFuture(result: userIDString)
-                        .map(UUID.init(uuidString:))
-                        .unwrap(or: Abort(.badRequest))
-                        .flatMap { User.find($0, on: request) }
-                        .unwrap(or: Abort(.badRequest))
-                        .flatMap { (user: User) -> Future<(User, Score)> in
-                            let isVictory = value >= 10
-                            user.wins += (isVictory ? 1 : 0)
-                            user.gamesPlayed += 1
-                            user.points += value
-                            let score = Score(
-                                value: value,
-                                isVictory: isVictory,
-                                userID: try user.requireID(),
-                                matchID: matchID)
-                            return user.update(on: request)
-                                .and(score.create(on: request))
-                    }
-                }
-                .flatten(on: request)
-        }
-        .map { $0.map { $0.1 } }
-    }
-
-    func createMatch(_ request: Request, _ input: CreateMatchInput) throws -> Future<[(User, Score)]> {
         return validate(input, on: request)
             .flatMap { self.fetchUserValues(for: $0, on: request) }
             .and(Match().create(on: request).map { try $0.requireID() })
@@ -66,6 +36,7 @@ extension MatchController {
                         .flatten(on: request)
                 }
         }
+        .map { $0.map { $0.1 } }
     }
 
     /// Gets the N most recent matches, where N is part of the parameterized request path.
