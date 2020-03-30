@@ -2,6 +2,7 @@ import Vapor
 import Foundation
 import FluentPostgreSQL
 
+// TODO: duplicate displayName validation
 // MARK: - User
 final class User {
 

@@ -19,7 +19,7 @@ extension UserController {
 
     /// Creates a new User.
     func create(_ request: Request, _ input: CreateUserInput) throws -> Future<User> {
-        let user = User(displayName: input.displayName, password: input.displayName)
+        let user = User(displayName: input.displayName, password: input.password)
         return user.create(on: request)
     }
 
