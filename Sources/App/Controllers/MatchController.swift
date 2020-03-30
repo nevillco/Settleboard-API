@@ -43,7 +43,7 @@ extension MatchController {
 
     func createMatch(_ request: Request, _ input: CreateMatchInput) throws -> Future<[(User, Score)]> {
         return validate(input)
-            .flatMap { self.fetchUserValues(for: $0) }
+            .flatMap { self.fetchUserValues(for: $0, on: request) }
             .and(Match().create(on: request).map { try $0.requireID() })
             .flatMap { (tuple1: ([FetchedValue], Match.ID)) -> Future<[(User, Score)]> in
                 let (userValues, matchID) = tuple1
@@ -107,8 +107,19 @@ extension MatchController {
     }
 
     typealias FetchedValue = (User, User.ID, Int)
-    func fetchUserValues(for input: CreateMatchInput) -> Future<[FetchedValue]> {
-        fatalError()
+    func fetchUserValues(
+        for input: CreateMatchInput,
+        on worker: Worker & DatabaseConnectable) -> Future<[FetchedValue]> {
+        input.scores.map { tuple -> Future<FetchedValue> in
+            let (userIDString, value) = tuple
+            return worker.eventLoop.newSucceededFuture(result: userIDString)
+                .map(UUID.init(uuidString:))
+                .unwrap(or: Abort(.badRequest))
+                .flatMap { User.find($0, on: worker) }
+                .unwrap(or: Abort(.badRequest))
+                .map { ($0, try $0.requireID(), value) }
+        }
+        .flatten(on: worker)
     }
 
 }
