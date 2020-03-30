@@ -19,7 +19,12 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 
     // Register Postgres DB
     var databases = DatabasesConfig()
-    let config = PostgreSQLDatabaseConfig(hostname: "localhost", username: "connorneville", database: "settleboard")
+    let config: PostgreSQLDatabaseConfig
+    if let url = Environment.get("DATABASE_URL") {
+        config = PostgreSQLDatabaseConfig(url: url, transport: .unverifiedTLS)!
+    } else {
+        config = PostgreSQLDatabaseConfig(hostname: "localhost", username: "connorneville", database: "settleboard")
+    }
     databases.add(database: PostgreSQLDatabase(config: config), as: .psql)
     services.register(databases)
 
