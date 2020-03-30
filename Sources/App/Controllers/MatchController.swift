@@ -42,7 +42,7 @@ extension MatchController {
     }
 
     func createMatch(_ request: Request, _ input: CreateMatchInput) throws -> Future<[(User, Score)]> {
-        return validate(input)
+        return validate(input, on: request)
             .flatMap { self.fetchUserValues(for: $0, on: request) }
             .and(Match().create(on: request).map { try $0.requireID() })
             .flatMap { (tuple1: ([FetchedValue], Match.ID)) -> Future<[(User, Score)]> in
@@ -67,6 +67,7 @@ extension MatchController {
                 }
         }
     }
+
     /// Gets the N most recent matches, where N is part of the parameterized request path.
     func getRecent(_ request: Request) throws -> Future<[RecentMatchOutput]> {
         let limit = try request.parameters.next(Int.self)
@@ -100,10 +101,17 @@ extension MatchController: RouteCollection {
 // MARK: - Private
 extension MatchController {
 
-    // TODO: implement and use
-
-    func validate(_ input: CreateMatchInput) -> Future<CreateMatchInput> {
-        fatalError()
+    func validate(_ input: CreateMatchInput, on worker: Worker) -> Future<CreateMatchInput> {
+        worker.eventLoop.future(input)
+            .validate(
+                (3...4).contains(input.scores.count),
+                errorReason: "Detected some number of scores other than 3 or 4.")
+            .validate(
+                input.scores.filter { $0.value >= 10 }.count == 1,
+                errorReason: "Detected more than 1 score over 10.")
+            .validate(
+                input.scores.allSatisfy { $0.value >= 2 },
+                errorReason: "All scores should be greater than 2.")
     }
 
     typealias FetchedValue = (User, User.ID, Int)
