@@ -43,6 +43,15 @@ extension UserController {
         }
     }
 
+    /// Checks whether a given display name is already in use or not.
+    func checkDisplayName(_ request: Request) throws -> Future<CheckDisplayNameOutput> {
+        let input: String = try request.query.get(at: "displayName")
+        return User.query(on: request)
+            .filter(\.displayName == input)
+            .first()
+            .map { user in .init(exists: user != nil) }
+    }
+
     /// Deletes a User.
     func delete(_ request: Request) throws -> Future<HTTPStatus> {
         return try request.parameters.next(User.self).delete(on: request).transform(to: .noContent)
@@ -65,6 +74,7 @@ extension UserController: RouteCollection {
     func bootWithoutAuth(router: Router) throws {
         let users = router.grouped("users")
         users.post(CreateUserInput.self, use: create)
+        users.get("exists", use: checkDisplayName)
     }
     
 }
