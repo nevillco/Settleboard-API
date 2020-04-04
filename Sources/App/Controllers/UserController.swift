@@ -26,7 +26,7 @@ extension UserController {
     }
 
     /// Creates a new User.
-    func create(_ request: Request, _ input: CreateUserInput) throws -> Future<HTTPStatus> {
+    func create(_ request: Request, _ input: AuthenticateUserInput) throws -> Future<HTTPStatus> {
         return User.query(on: request)
             .filter(\.displayName == input.displayName)
             .first()
@@ -41,6 +41,11 @@ extension UserController {
                     return user.create(on: request).transform(to: .created)
                 }
         }
+    }
+
+    /// Validates an existing User’s credentials.
+    func authenticate(_ request: Request) throws -> Future<HTTPStatus> {
+        return request.eventLoop.future(.accepted)
     }
 
     /// Checks whether a given display name is already in use or not.
@@ -66,14 +71,16 @@ extension UserController: RouteCollection {
         let users = router.grouped("users")
         users.get(use: getAll)
         users.get(User.parameter, use: getByID)
+        users.post("authenticate", use: authenticate)
         users.delete(User.parameter, use: delete)
+
         let scores = router.grouped("users", User.parameter, "scores")
         scores.get(use: self.scores)
     }
 
     func bootWithoutAuth(router: Router) throws {
         let users = router.grouped("users")
-        users.post(CreateUserInput.self, use: create)
+        users.post(AuthenticateUserInput.self, use: create)
         users.get("exists", use: checkDisplayName)
     }
     

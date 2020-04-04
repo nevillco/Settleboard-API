@@ -1,7 +1,7 @@
 import Vapor
 
-// MARK: - CreateUserInput
-final class CreateUserInput {
+// MARK: - AuthenticateUserInput
+final class AuthenticateUserInput {
 
     let displayName: String
     let password: String
@@ -14,4 +14,4 @@ final class CreateUserInput {
 }
 
 // MARK: - Content
-extension CreateUserInput: Content { }
+extension AuthenticateUserInput: Content { }
