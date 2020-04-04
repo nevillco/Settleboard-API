@@ -69,7 +69,6 @@ extension UserController: RouteCollection {
 
     func boot(router: Router) throws {
         let users = router.grouped("users")
-        users.get(use: getAll)
         users.get(User.parameter, use: getByID)
         users.post("authenticate", use: authenticate)
         users.delete(User.parameter, use: delete)
@@ -81,6 +80,7 @@ extension UserController: RouteCollection {
     func bootWithoutAuth(router: Router) throws {
         let users = router.grouped("users")
         users.post(AuthenticateUserInput.self, use: create)
+        users.get(use: getAll)
         users.get("exists", use: checkDisplayName)
     }
     
