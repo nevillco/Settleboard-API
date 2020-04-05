@@ -20,12 +20,12 @@ extension UserController {
     }
 
     /// Gets all recent Matches for a given User.
-    func recentMatches(_ request: Request) throws -> Future<StructuredMatchOutput> {
-        request.withPooledConnection(to: .psql) { (connection: PostgreSQLConnection) -> EventLoopFuture<StructuredMatchOutput> in
+    func recentMatches(_ request: Request) throws -> Future<MatchesOutput> {
+        request.withPooledConnection(to: .psql) { (connection: PostgreSQLConnection) -> EventLoopFuture<MatchesOutput> in
             return try request.parameters.next(User.self).flatMap { user in
                 return connection.raw(Queries.recentMatches(userID: try user.requireID()))
-                    .all(decoding: RecentMatchOutput.self)
-                    .map(StructuredMatchOutput.init)
+                    .all(decoding: SQLMatchItemOutput.self)
+                    .map(MatchesOutput.init)
             }
         }
     }

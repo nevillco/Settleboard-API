@@ -35,7 +35,7 @@ public enum Queries {
         INNER JOIN "Match" AS M ON M."id"=MU."matchID"
         INNER JOIN "Match_User" AS MUS ON MUS."matchID"=M."id"
         INNER JOIN "User" AS U ON U."id"=MUS."userID"
-        WHERE MU."userID"='aaa0d482-99a5-4842-aff5-907bdc640701'
+        WHERE MU."userID"='\(userID.uuidString)'
         ORDER BY "matchDate" DESC, "points" DESC;
         """
     }

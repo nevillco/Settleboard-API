@@ -1,7 +1,7 @@
 import Vapor
 
 // MARK: - CheckDisplayNameOutput
-final class CheckDisplayNameOutput {
+final class CheckDisplayNameOutput: Content {
 
     let exists: Bool
 
@@ -10,6 +10,3 @@ final class CheckDisplayNameOutput {
     }
 
 }
-
-// MARK: - Content
-extension CheckDisplayNameOutput: Content { }

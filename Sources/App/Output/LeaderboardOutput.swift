@@ -1,7 +1,7 @@
 import Vapor
 
 // MARK: - LeaderboardOutput
-final class LeaderboardOutput {
+final class LeaderboardOutput: Content {
 
     let displayName: String
 
@@ -27,6 +27,3 @@ final class LeaderboardOutput {
     }
 
 }
-
-// MARK: - Content
-extension LeaderboardOutput: Content { }
