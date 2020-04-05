@@ -31,7 +31,7 @@ extension UserController {
     }
 
     /// Creates a new User.
-    func create(_ request: Request, _ input: AuthenticateUserInput) throws -> Future<HTTPStatus> {
+    func create(_ request: Request, _ input: AuthenticateUserInput) throws -> Future<CredentialOutput> {
         return User.query(on: request)
             .filter(\.displayName == input.displayName)
             .first()
@@ -43,14 +43,20 @@ extension UserController {
                     let digest = try request.make(BCryptDigest.self)
                     let hashedPassword = try digest.hash(input.password)
                     let user = User(displayName: input.displayName, password: hashedPassword)
-                    return user.create(on: request).transform(to: .created)
+                    return user.create(on: request).map { user in
+                        CredentialOutput(displayName: user.displayName, id: try user.requireID())
+                    }
                 }
         }
     }
 
     /// Validates an existing User’s credentials.
-    func authenticate(_ request: Request) throws -> Future<HTTPStatus> {
-        return request.eventLoop.future(.accepted)
+    func authenticate(_ request: Request, _ input: AuthenticateUserInput) throws -> Future<CredentialOutput> {
+        return User.query(on: request)
+            .filter(\.displayName == input.displayName)
+            .first()
+            .unwrap(or: Abort(.badRequest, reason: "Display name not found."))
+            .map { CredentialOutput(displayName: $0.displayName, id: try $0.requireID()) }
     }
 
     /// Checks whether a given display name is already in use or not.
@@ -75,7 +81,7 @@ extension UserController: RouteCollection {
     func boot(router: Router) throws {
         let users = router.grouped("users")
         users.get(User.parameter, use: getByID)
-        users.post("authenticate", use: authenticate)
+        users.post(AuthenticateUserInput.self, at: "authenticate", use: authenticate)
         users.delete(User.parameter, use: delete)
 
         let recentMatches = router.grouped("users", User.parameter, "recent")

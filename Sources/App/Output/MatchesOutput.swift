@@ -1,6 +1,5 @@
 import Vapor
 
-// TODO: ensure clients have access to current user ID and display name on sign in or sign up.
 // MARK: - MatchesOutput
 final class MatchesOutput: Content {
 
