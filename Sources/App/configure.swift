@@ -33,6 +33,6 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     var migrations = MigrationConfig()
     migrations.add(model: User.self, database: .psql)
     migrations.add(model: Match.self, database: .psql)
-    migrations.add(model: Score.self, database: .psql)
+    migrations.add(model: MatchUser.self, database: .psql)
     services.register(migrations)
 }

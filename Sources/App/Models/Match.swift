@@ -15,7 +15,7 @@ final class Match {
 // MARK: - Relations
 extension Match {
 
-    var scores: Children<Match, Score> { children(\.matchID) }
+    var users: Siblings<Match, User, MatchUser> { siblings() }
 
 }
 

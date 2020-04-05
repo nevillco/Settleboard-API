@@ -8,54 +8,40 @@ final class MatchController { }
 extension MatchController {
 
     /// Creates a new Match.
-    func create(_ request: Request, _ input: CreateMatchInput) throws -> Future<[Score]> {
+    func create(_ request: Request, _ input: CreateMatchInput) throws -> Future<[MatchUser]> {
         return validate(input, on: request)
             .flatMap { self.fetchUserValues(for: $0, on: request) }
-            .flatMap { fetchedValues in
-                return Match().create(on: request)
-                    .map { (fetchedValues, try $0.requireID()) }
-        }
-        .flatMap { tuple -> Future<[(User, Score)]> in
-            let (userValues, matchID) = tuple
-            return request.eventLoop.future(userValues)
-                .flatMap { userValues -> Future<[(User, Score)]> in
-                    return userValues.map { tuple -> Future<(User, Score)> in
-                        let (user, userID, value) = tuple
-                        let isVictory = value >= 10
-                        user.wins += (isVictory ? 1 : 0)
-                        user.gamesPlayed += 1
-                        user.points += value
-                        let score = Score(
-                            value: value,
-                            isVictory: isVictory,
-                            userID: userID,
-                            matchID: matchID)
-                        return user.update(on: request)
-                            .and(score.create(on: request))
-                    }
-                    .flatten(on: request)
-            }
-        }
-        .map { $0.map { $0.1 } }
-    }
-
-    /// Gets the most recent matches, paginated.
-    func getRecent(_ request: Request) throws -> Future<[RecentMatchOutput]> {
-        let offset: Int = try request.query.get(at: "offset")
-        let size: Int = try request.query.get(at: "size")
-        return Match.query(on: request)
-            .sort(\.createdAt)
-            .range(offset..<(offset + size))
-            .all()
-            .flatMap { matches -> Future<[RecentMatchOutput]> in
-                return try matches.map { match -> Future<RecentMatchOutput> in
-                    let matchID = try match.requireID()
-                    return try match.scores.query(on: request).all()
-                        .map { scores in RecentMatchOutput(matchID: matchID, scores: scores) }
+            .and(Match().create(on: request).map { try $0.requireID() })
+            .flatMap { tuple -> Future<[MatchUser]> in
+                let (userValues, matchID) = tuple
+                return request.eventLoop.future(userValues)
+                    .flatMap { userValues -> Future<[MatchUser]> in
+                        return userValues.map { tuple -> Future<MatchUser> in
+                            let (userID, value) = tuple
+                            return MatchUser(matchID: matchID, userID: userID, value: value).create(on: request)
+                        }
+                        .flatten(on: request)
                 }
-                .flatten(on: request)
         }
     }
+//
+//    /// Gets the most recent matches, paginated.
+//    func getRecent(_ request: Request) throws -> Future<[RecentMatchOutput]> {
+//        let offset: Int = try request.query.get(at: "offset")
+//        let size: Int = try request.query.get(at: "size")
+//        return Match.query(on: request)
+//            .sort(\.createdAt)
+//            .range(offset..<(offset + size))
+//            .all()
+//            .flatMap { matches -> Future<[RecentMatchOutput]> in
+//                return try matches.map { match -> Future<RecentMatchOutput> in
+//                    let matchID = try match.requireID()
+//                    return try match.scores.query(on: request).all()
+//                        .map { scores in RecentMatchOutput(matchID: matchID, scores: scores) }
+//                }
+//                .flatten(on: request)
+//        }
+//    }
 
 }
 
@@ -65,7 +51,7 @@ extension MatchController: RouteCollection {
     func boot(router: Router) throws {
         let matches = router.grouped("matches")
         matches.post(CreateMatchInput.self, use: create)
-        matches.get("recent", use: getRecent)
+//        matches.get("recent", use: getRecent)
     }
 
 }
@@ -86,7 +72,7 @@ extension MatchController {
                 errorReason: "All scores should be greater than 2.")
     }
 
-    typealias FetchedValue = (User, User.ID, Int)
+    typealias FetchedValue = (User.ID, Int)
     func fetchUserValues(
         for input: CreateMatchInput,
         on worker: Worker & DatabaseConnectable) -> Future<[FetchedValue]> {
@@ -97,7 +83,7 @@ extension MatchController {
                 .unwrap(or: Abort(.badRequest, reason: "An invalid UUID was passed."))
                 .flatMap { User.find($0, on: worker) }
                 .unwrap(or: Abort(.badRequest, reason: "No user was found for one of the given IDs."))
-                .map { ($0, try $0.requireID(), value) }
+                .map { (try $0.requireID(), value) }
         }
         .flatten(on: worker)
     }

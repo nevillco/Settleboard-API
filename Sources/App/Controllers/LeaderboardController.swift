@@ -1,5 +1,6 @@
 import Vapor
 import Fluent
+import FluentPostgreSQL
 
 // MARK: - LeaderboardController
 final class LeaderboardController { }
@@ -8,15 +9,11 @@ final class LeaderboardController { }
 extension LeaderboardController {
 
     /// Gets the leaderboard of players, in preferred order, paginated.
-    func leaderboard(_ request: Request) throws -> Future<[User]> {
-        let offset: Int = try request.query.get(at: "offset")
-        let size: Int = try request.query.get(at: "size")
-        return User.query(on: request)
-            .filter(\.gamesPlayed >= 3)
-            .sort(\.winPercentage, .descending)
-            .sort(\.pointsPerGame, .descending)
-            .range(offset..<(offset + size))
-            .all()
+    func leaderboard(_ request: Request) throws -> Future<[LeaderboardOutput]> {
+        request.withPooledConnection(to: .psql) { (connection: PostgreSQLConnection) -> EventLoopFuture<[LeaderboardOutput]> in
+            return connection.raw(Queries.leaderboard)
+                .all(decoding: LeaderboardOutput.self)
+        }
     }
 
 }

@@ -18,12 +18,12 @@ extension UserController {
         return try request.parameters.next(User.self)
     }
 
-    /// Gets all Scores for a given User.
-    func scores(_ request: Request) throws -> Future<[Score]> {
-        return try request.parameters.next(User.self).flatMap { user in
-            try user.scores.query(on: request).all()
-        }
-    }
+//    /// Gets all Scores for a given User.
+//    func scores(_ request: Request) throws -> Future<[Score]> {
+//        return try request.parameters.next(User.self).flatMap { user in
+//            try user.scores.query(on: request).all()
+//        }
+//    }
 
     /// Creates a new User.
     func create(_ request: Request, _ input: AuthenticateUserInput) throws -> Future<HTTPStatus> {
@@ -73,8 +73,8 @@ extension UserController: RouteCollection {
         users.post("authenticate", use: authenticate)
         users.delete(User.parameter, use: delete)
 
-        let scores = router.grouped("users", User.parameter, "scores")
-        scores.get(use: self.scores)
+//        let scores = router.grouped("users", User.parameter, "scores")
+//        scores.get(use: self.scores)
     }
 
     func bootWithoutAuth(router: Router) throws {
