@@ -1,6 +1,7 @@
 import Crypto
 import Vapor
 import Fluent
+import FluentPostgreSQL
 
 // MARK: - UserController
 final class UserController { }
@@ -18,12 +19,16 @@ extension UserController {
         return try request.parameters.next(User.self)
     }
 
-//    /// Gets all Scores for a given User.
-//    func scores(_ request: Request) throws -> Future<[Score]> {
-//        return try request.parameters.next(User.self).flatMap { user in
-//            try user.scores.query(on: request).all()
-//        }
-//    }
+    /// Gets all recent Matches for a given User.
+    func recentMatches(_ request: Request) throws -> Future<StructuredMatchOutput> {
+        request.withPooledConnection(to: .psql) { (connection: PostgreSQLConnection) -> EventLoopFuture<StructuredMatchOutput> in
+            return try request.parameters.next(User.self).flatMap { user in
+                return connection.raw(Queries.recentMatches(userID: try user.requireID()))
+                    .all(decoding: RecentMatchOutput.self)
+                    .map(StructuredMatchOutput.init)
+            }
+        }
+    }
 
     /// Creates a new User.
     func create(_ request: Request, _ input: AuthenticateUserInput) throws -> Future<HTTPStatus> {
@@ -73,8 +78,8 @@ extension UserController: RouteCollection {
         users.post("authenticate", use: authenticate)
         users.delete(User.parameter, use: delete)
 
-//        let scores = router.grouped("users", User.parameter, "scores")
-//        scores.get(use: self.scores)
+        let recentMatches = router.grouped("users", User.parameter, "recent")
+        recentMatches.get(use: self.recentMatches)
     }
 
     func bootWithoutAuth(router: Router) throws {
