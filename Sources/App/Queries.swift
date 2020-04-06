@@ -8,6 +8,7 @@ public enum Queries {
     SELECT
 
     "User"."displayName" AS "displayName",
+    "Match_User"."userID" AS "userID",
     Count(*) AS "gamesPlayed",
     Count("Match_User"."isVictory" or NULL) AS "wins",
     Cast (Count("Match_User"."isVictory" or NULL) as float) / Count(*) AS "winPercentage",
@@ -16,7 +17,7 @@ public enum Queries {
 
     FROM "Match_User"
     FULL JOIN "User" ON "User"."id"="Match_User"."userID"
-    GROUP BY "displayName"
+    GROUP BY "displayName", "userID"
     HAVING Count(*) >= 3
     ORDER BY "winPercentage" DESC, "pointsPerGame" DESC;
     """
