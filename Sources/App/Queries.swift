@@ -22,6 +22,22 @@ public enum Queries {
     ORDER BY "winPercentage" DESC, "pointsPerGame" DESC;
     """
 
+    static let recentMatches: String =
+    """
+    SELECT
+
+    U."displayName" AS "displayName",
+    U."id" AS "userID",
+    MU."matchID" AS "matchID",
+    M."createdAt" AS "matchDate",
+    MU."value" AS "points"
+
+    FROM "Match_User" AS MU
+    INNER JOIN "Match" AS M ON M."id"=MU."matchID"
+    INNER JOIN "User" AS U ON U."id"=MU."userID"
+    ORDER BY "matchDate" DESC, "points" DESC;
+    """
+
     static func recentMatches(userID: User.ID) -> String {
         """
         SELECT

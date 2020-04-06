@@ -1,5 +1,5 @@
 import Vapor
-import Fluent
+import FluentPostgreSQL
 
 // MARK: - MatchController
 final class MatchController { }
@@ -24,24 +24,15 @@ extension MatchController {
                 }
         }
     }
-//
-//    /// Gets the most recent matches, paginated.
-//    func getRecent(_ request: Request) throws -> Future<[RecentMatchOutput]> {
-//        let offset: Int = try request.query.get(at: "offset")
-//        let size: Int = try request.query.get(at: "size")
-//        return Match.query(on: request)
-//            .sort(\.createdAt)
-//            .range(offset..<(offset + size))
-//            .all()
-//            .flatMap { matches -> Future<[RecentMatchOutput]> in
-//                return try matches.map { match -> Future<RecentMatchOutput> in
-//                    let matchID = try match.requireID()
-//                    return try match.scores.query(on: request).all()
-//                        .map { scores in RecentMatchOutput(matchID: matchID, scores: scores) }
-//                }
-//                .flatten(on: request)
-//        }
-//    }
+
+    /// Gets all recent Matches.
+    func recent(_ request: Request) throws -> Future<MatchesOutput> {
+        request.withPooledConnection(to: .psql) { (connection: PostgreSQLConnection) -> EventLoopFuture<MatchesOutput> in
+        return connection.raw(Queries.recentMatches)
+            .all(decoding: SQLMatchItemOutput.self)
+            .map(MatchesOutput.init)
+        }
+    }
 
 }
 
@@ -51,7 +42,7 @@ extension MatchController: RouteCollection {
     func boot(router: Router) throws {
         let matches = router.grouped("matches")
         matches.post(CreateMatchInput.self, use: create)
-//        matches.get("recent", use: getRecent)
+        matches.get("recent", use: recent)
     }
 
 }

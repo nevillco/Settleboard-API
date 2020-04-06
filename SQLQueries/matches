@@ -1,0 +1,11 @@
+SELECT
+
+U."displayName" AS "displayName",
+MU."matchID" AS "matchID",
+M."createdAt" AS "matchDate",
+MU."value" AS "points"
+
+FROM "Match_User" AS MU
+INNER JOIN "Match" AS M ON M."id"=MU."matchID"
+INNER JOIN "User" AS U ON U."id"=MU."userID"
+ORDER BY "matchDate" DESC, "points" DESC;
